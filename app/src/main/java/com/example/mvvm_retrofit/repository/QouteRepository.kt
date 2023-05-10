@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.mvvm_retrofit.api.QuoteService
 import com.example.mvvm_retrofit.db.QuoteDatabase
-import com.example.mvvm_retrofit.models.QuoteList
+import com.example.mvvm_retrofit.models.Result
 import com.example.mvvm_retrofit.utils.NetworkUtils
 
 class QouteRepository(
@@ -14,9 +14,9 @@ class QouteRepository(
     private val applicationContext: Context
 ) {
 
-    private val quotesLiveData = MutableLiveData<QuoteList>()
+    private val quotesLiveData = MutableLiveData<List<Result>>()
 
-    val quotes:LiveData<QuoteList>
+    val quotes:LiveData<List<Result>>
     get() = quotesLiveData
 
     suspend fun getQuotes(page:Int){
@@ -31,14 +31,13 @@ class QouteRepository(
 //                    quoteDatabase.quoteDao().addQuotes(result.body()!!.results)
 //                }
                 quoteDatabase.quoteDao().addQuotes(result.body()!!.results)
-                quotesLiveData.postValue(result.body())
+                quotesLiveData.postValue(result.body()!!.results)
 
             }
         }
         else{
             val quotes = quoteDatabase.quoteDao().getQuotes()
-            val quoteList = QuoteList(1,1,1,quotes,1,1)
-            quotesLiveData.postValue(quoteList)
+            quotesLiveData.postValue(quotes)
         }
 
     }
@@ -48,7 +47,10 @@ class QouteRepository(
         val result = quoteService.getOuotes(randomNumer)
         if(result?.body() != null){
             quoteDatabase.quoteDao().addQuotes(result.body()!!.results)
-            quotesLiveData.postValue(result.body())
+            val list = mutableListOf<Result>()
+            list.addAll(quotesLiveData.value ?: emptyList())
+            list.addAll(result.body()?.results ?: emptyList())
+            quotesLiveData.postValue(list)
         }
     }
 }
