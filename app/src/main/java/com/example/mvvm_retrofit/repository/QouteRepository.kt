@@ -48,6 +48,7 @@ class QouteRepository(
         val result = quoteService.getOuotes(randomNumer)
         if(result?.body() != null){
             quoteDatabase.quoteDao().addQuotes(result.body()!!.results)
+            quotesLiveData.postValue(result.body())
         }
     }
 }
